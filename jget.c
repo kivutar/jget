@@ -3,10 +3,20 @@
 #include <bio.h>
 #include <json.h>
 
+void usage(void)
+{
+	print("jget key foo");
+	print("jget idx 0");
+	print("jget str foo");
+}
+
 void
 main(int argc, char **argv)
 {
-	USED(argc, argv);
+	if(argc != 3){
+		usage();
+		exits(nil);
+	}
 
 	Biobuf bin;
 	char *s;
@@ -20,20 +30,34 @@ main(int argc, char **argv)
 
 	j = jsonparse(s);
 	if(j == nil)
-	sysfatal("jsonparse failed");
+		sysfatal("jsonparse failed");
 
-	JSON *output = jsonbyname(j, "output");
-	if(output == nil)
-		sysfatal("no output");
+	JSONfmtinstall();
 
-	if(output->t == JSONArray) {
-		JSONEl *first = output->first;
-		JSON *cont = jsonbyname(first->val, "content");
-		if(cont && cont->t == JSONArray) {
-			JSONEl *first = cont->first;
-			JSON *text = jsonbyname(first->val, "text");
-			print("%s\n", jsonstr(text));
-		}
+	char *verb = argv[1];
+	char *obj = argv[2];
+
+	if(!strcmp(verb, "key")){
+		JSON *out = jsonbyname(j, obj);
+		if(out == nil)
+			sysfatal("could not find key");
+
+		print("%J\n", out);
+	}else if(!strcmp(verb, "str")){
+		JSON *out = jsonbyname(j, obj);
+		if(out == nil)
+			sysfatal("could not find key");
+
+		print("%s\n", jsonstr(out));
+	}else if(!strcmp(verb, "idx")){
+		if(j->t != JSONArray)
+			sysfatal("only array can be indexed");
+		int ind = atoi(obj);
+		JSONEl *el = j->first;
+		for(int i=0;i<ind;i++)
+			el = el->next;
+			
+		print("%J\n", el->val);
 	}
 
 	free(s);
