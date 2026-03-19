@@ -1,8 +1,7 @@
 </$objtype/mkfile
 
+TARG=jget jquote
 BIN=/$objtype/bin
-TARG=jget
-OFILES=\
-	jget.$O\
+HFILES=/sys/include/json.h
 
-</sys/src/cmd/mkone
+</sys/src/cmd/mkmany
